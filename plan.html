@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Математика 7 клас · Інтелект України</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --bg-paper: #faf7f0;
+    --bg-paper-2: #f0ebe0;
+    --ink: #1a1614;
+    --ink-soft: #4a423d;
+    --rule: #3a322c;
+    --algebra: #8b3a2a;
+    --algebra-soft: #c97a5c;
+    --geometry: #2d5a3f;
+    --geometry-soft: #5c8a6b;
+    --accent: #c9a961;
+    --good: #2d5a3f;
+    --mid: #c9a961;
+    --bad: #8b3a2a;
+    --shadow: 0 1px 0 rgba(26,22,20,0.06), 0 4px 24px rgba(26,22,20,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Manrope', sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(201,169,97,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(139,58,42,0.04) 0%, transparent 50%);
+  }
+
+  /* HEADER */
+  .masthead {
+    border-bottom: 2px solid var(--rule);
+    background: var(--bg-paper);
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0px, var(--ink) 4px,
+      transparent 4px, transparent 8px
+    );
+  }
+  .masthead-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 32px 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+  }
+  .masthead h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--algebra);
+  }
+  .masthead .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    margin-top: 12px;
+  }
+  .masthead .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    text-align: right;
+    line-height: 1.8;
+  }
+  .masthead .meta strong { color: var(--ink); }
+
+  /* ID INPUT BAR */
+  .id-bar {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .id-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .id-bar label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .id-bar input {
+    flex: 1;
+    min-width: 240px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--accent);
+    color: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    padding: 8px 4px;
+    outline: none;
+  }
+  .id-bar input::placeholder { color: rgba(244,241,234,0.4); }
+  .id-bar input:focus { border-bottom-color: var(--bg); }
+  .id-bar button {
+    background: var(--accent);
+    color: var(--ink);
+    border: none;
+    padding: 10px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .id-bar button:hover { background: var(--bg); }
+  .id-bar button.clear {
+    background: transparent;
+    color: var(--bg);
+    border: 1px solid rgba(244,241,234,0.3);
+  }
+  .id-bar button.clear:hover { background: rgba(244,241,234,0.1); }
+  .id-bar .status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 56px 32px 80px;
+  }
+
+  /* SUBJECT */
+  .subject { margin-bottom: 80px; }
+  .subject-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 24px;
+    padding-bottom: 20px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .subject-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    color: var(--ink-soft);
+  }
+  .subject-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .subject.algebra .subject-title { color: var(--algebra); }
+  .subject.geometry .subject-title { color: var(--geometry); }
+  .subject-hours {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+  }
+
+  /* THEME */
+  .theme {
+    background: var(--bg-paper);
+    border: 1px solid rgba(58,50,44,0.12);
+    margin-bottom: 36px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .theme::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--algebra);
+  }
+  .subject.geometry .theme::before { background: var(--geometry); }
+
+  .theme-header {
+    padding: 28px 32px 20px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: start;
+    border-bottom: 1px dashed rgba(58,50,44,0.18);
+  }
+  .theme-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 3rem;
+    line-height: 0.9;
+    color: var(--algebra);
+    opacity: 0.7;
+  }
+  .subject.geometry .theme-num { color: var(--geometry); }
+  .theme-title-block h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .theme-title-block .theme-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+  }
+  .theme-hours-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 6px 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* PARAGRAPHS BLOCK */
+  .paragraphs-block {
+    padding: 22px 32px;
+    background: var(--bg-paper-2);
+    border-bottom: 1px dashed rgba(58,50,44,0.18);
+  }
+  .block-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+  .paragraphs-list {
+    list-style: none;
+    columns: 2;
+    column-gap: 32px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  @media (max-width: 700px) { .paragraphs-list { columns: 1; } }
+  .paragraphs-list li {
+    padding: 4px 0;
+    color: var(--ink-soft);
+    break-inside: avoid;
+  }
+
+  /* CONCEPTS */
+  .concepts-wrap {
+    padding: 8px 0 8px;
+  }
+  .concept {
+    padding: 24px 32px;
+    border-bottom: 1px dotted rgba(58,50,44,0.15);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 28px;
+    align-items: center;
+  }
+  .concept:last-child { border-bottom: none; }
+  @media (max-width: 820px) {
+    .concept {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+
+  .concept-info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px 20px;
+    align-items: baseline;
+  }
+  .concept-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.6rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .concept-text h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .concept-text p {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  /* TESTS GRID (PER CONCEPT) */
+  .concept-tests {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    gap: 8px;
+  }
+  @media (max-width: 820px) {
+    .concept-tests { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .test-pill {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 12px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid rgba(58,50,44,0.3);
+    transition: all 0.18s;
+    position: relative;
+    min-height: 64px;
+  }
+  .test-pill:hover {
+    background: var(--algebra);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .subject.geometry .test-pill:hover { background: var(--geometry); }
+  .test-pill.no-link {
+    cursor: default;
+    opacity: 0.4;
+    background: rgba(58,50,44,0.6);
+  }
+  .test-pill.no-link:hover {
+    background: rgba(58,50,44,0.6);
+    border-color: rgba(58,50,44,0.3);
+    transform: none;
+  }
+
+  .pill-level {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .pill-count {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1;
+    color: rgba(244,241,234,0.7);
+  }
+  .pill-score {
+    margin-top: auto;
+    padding-top: 4px;
+    border-top: 1px dotted rgba(244,241,234,0.2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .pill-score.good { color: #9bce9b; }
+  .pill-score.mid  { color: var(--accent); }
+  .pill-score.bad  { color: #d99186; }
+  .pill-score.none { color: rgba(244,241,234,0.3); font-weight: 400; }
+
+  /* INTRO */
+  .intro {
+    background: var(--bg-paper);
+    padding: 32px 36px;
+    margin-bottom: 56px;
+    border-left: 4px solid var(--accent);
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+  @media (max-width: 700px) { .intro { grid-template-columns: 1fr; } }
+  .intro-block h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--algebra);
+    margin-bottom: 12px;
+  }
+  .intro-block p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .intro-block strong {
+    font-style: normal;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* PROGRESS BAR */
+  .progress-summary {
+    background: var(--bg-paper);
+    border: 1px solid rgba(58,50,44,0.12);
+    padding: 24px 32px;
+    margin-bottom: 56px;
+    box-shadow: var(--shadow);
+    display: none;
+  }
+  .progress-summary.show { display: block; }
+  .progress-summary h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+  }
+  .progress-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .progress-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .stat {
+    padding: 12px;
+    border-left: 3px solid var(--accent);
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--algebra);
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+
+  /* FOOTER */
+  .footer {
+    border-top: 2px solid var(--rule);
+    margin-top: 80px;
+    padding: 32px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(244,241,234,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--ink);
+    letter-spacing: 0.1em;
+  }
+  .loading-overlay.show { display: flex; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">⟳ Завантаження оцінок...</div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <div class="subtitle">Науково-педагогічний проєкт</div>
+      <h1>Математика · <em>7 клас</em></h1>
+      <div class="subtitle" style="margin-top:16px;">Інтелект України · 209 годин · 6 год/тиждень</div>
+    </div>
+    <div class="meta">
+      <strong>Алгебра</strong> · 122 год<br>
+      <strong>Геометрія</strong> · 87 год<br>
+      59 понять · 177 тестів
+    </div>
+  </div>
+</header>
+
+<div class="id-bar">
+  <div class="id-bar-inner">
+    <label for="userEmail">Твій Google ID (email):</label>
+    <input type="email" id="userEmail" placeholder="example@gmail.com" autocomplete="email">
+    <button id="loadScoresBtn">Завантажити оцінки</button>
+    <button class="clear" id="clearBtn">Очистити</button>
+    <span class="status" id="status"></span>
+  </div>
+</div>
+
+<main class="container">
+
+  <div class="intro">
+    <div class="intro-block">
+      <h4>Як користуватися</h4>
+      <p>Введи свій <strong>Google email</strong> вгорі — і на кожному тесті, який ти вже здавав, з'явиться твоя <strong>остання оцінка</strong>. Email запам'ятовується в браузері.</p>
+    </div>
+    <div class="intro-block">
+      <h4>Структура тестів</h4>
+      <p>Кожне <strong>ключове поняття</strong> має <strong>три тести</strong>: легкий (50), середній (25) та складний (10). Починай з легкого.</p>
+    </div>
+  </div>
+
+  <div class="progress-summary" id="progressSummary"></div>
+
+  <div id="curriculum-root"></div>
+
+</main>
+
+<footer class="footer">
+  Створено для домашнього навчання · 2026
+</footer>
+
+<script src="curriculum.js"></script>
+<script>
+  // ============================================
+  // КОНФІГУРАЦІЯ
+  // ============================================
+  const APPS_SCRIPT_URL = '__INSERT_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE__';
+
+  // Мапа testId → URL форми. Заповнюється з логів forms-generator.gs
+//  const TEST_URLS = {
+    // приклад:
+    // "algebra-t3-c-factor-out-easy": "https://docs.google.com/forms/d/e/.../viewform",
+//  };
+  const TEST_URLS = {
+  "algebra-t3-c-factor-out-easy": "https://docs.google.com/forms/d/e/1FAIpQLScnRCKWmrH9F81M22G9P6rkBrM_ukfoZgheGvZWcK8RQVu6AQ/viewform",
+  "algebra-t3-c-factor-out-hard": "https://docs.google.com/forms/d/e/1FAIpQLSdCayB4oXhKzL-mo_7b_4a8_57X1Kmb30Q6zHHyRmJcVKnQvg/viewform",
+  "algebra-t3-c-factor-out-medium": "https://docs.google.com/forms/d/e/1FAIpQLSfzNMzVXmwweLerKq96taK4j4gbRh4ynPAEF4abwuWFoAIRNw/viewform",
+  };
+
+  // ============================================
+  // СТАН
+  // ============================================
+  let currentEmail = '';
+  let scoresCache = {};
+
+  const LEVEL_META = {
+    easy:   { label: 'Легкий',   count: 50 },
+    medium: { label: 'Середній', count: 25 },
+    hard:   { label: 'Складний', count: 10 }
+  };
+
+  function buildTestId(subjectId, themeId, conceptId, level) {
+    return subjectId + "-t" + themeId + "-c-" + conceptId + "-" + level;
+  }
+
+  function scoreClass(percent) {
+    if (percent >= 80) return 'good';
+    if (percent >= 60) return 'mid';
+    return 'bad';
+  }
+
+  // ============================================
+  // РЕНДЕРИНГ
+  // ============================================
+  function renderTestPill(subjectId, themeId, conceptId, level) {
+    const testId = buildTestId(subjectId, themeId, conceptId, level);
+    const meta = LEVEL_META[level];
+    const url = TEST_URLS[testId];
+    const score = scoresCache[testId];
+
+    let scoreHtml = '';
+    if (score && score.percent != null) {
+      const cls = scoreClass(score.percent);
+      scoreHtml = `<div class="pill-score ${cls}">${score.percent}%</div>`;
+    } else if (currentEmail) {
+      scoreHtml = `<div class="pill-score none">—</div>`;
+    }
+
+    if (url) {
+      return `<a href="${url}" target="_blank" rel="noopener" class="test-pill" title="${meta.label} · ${meta.count} питань">
+        <div class="pill-level">${meta.label}</div>
+        <div class="pill-count">${meta.count} пит.</div>
+        ${scoreHtml}
+      </a>`;
+    } else {
+      return `<div class="test-pill no-link" title="Тест ще не згенеровано">
+        <div class="pill-level">${meta.label}</div>
+        <div class="pill-count">${meta.count} пит.</div>
+        ${scoreHtml}
+      </div>`;
+    }
+  }
+
+  function renderConcept(subjectId, themeId, concept, index) {
+    const pillsHtml = ['easy', 'medium', 'hard']
+      .map(lvl => renderTestPill(subjectId, themeId, concept.id, lvl))
+      .join('');
+
+    return `<div class="concept">
+      <div class="concept-info">
+        <div class="concept-mark">${index + 1}.</div>
+        <div class="concept-text">
+          <h4>${concept.name}</h4>
+          <p>${concept.definition}</p>
+        </div>
+      </div>
+      <div class="concept-tests">${pillsHtml}</div>
+    </div>`;
+  }
+
+  function renderTheme(subjectId, theme) {
+    const paragraphsHtml = theme.paragraphs.map(p => `<li>${p}</li>`).join('');
+    const conceptsHtml = theme.concepts
+      .map((c, i) => renderConcept(subjectId, theme.id, c, i))
+      .join('');
+
+    return `<article class="theme">
+      <header class="theme-header">
+        <div class="theme-num">${theme.number}</div>
+        <div class="theme-title-block">
+          <div class="theme-kicker">Тема ${theme.number} · ${theme.concepts.length} понять</div>
+          <h3>${theme.title}</h3>
+        </div>
+        <div class="theme-hours-pill">${theme.hours} год</div>
+      </header>
+      <div class="paragraphs-block">
+        <div class="block-label">Параграфи</div>
+        <ul class="paragraphs-list">${paragraphsHtml}</ul>
+      </div>
+      <div class="concepts-wrap">${conceptsHtml}</div>
+    </article>`;
+  }
+
+  function renderSubject(subject) {
+    const themesHtml = subject.themes.map(t => renderTheme(subject.id, t)).join('');
+    const totalHours = subject.themes.reduce((s, t) => s + t.hours, 0);
+    const totalConcepts = subject.themes.reduce((s, t) => s + t.concepts.length, 0);
+    return `<section class="subject ${subject.id}">
+      <header class="subject-header">
+        <div class="subject-number">${subject.id === 'algebra' ? 'I' : 'II'}</div>
+        <h2 class="subject-title">${subject.name}</h2>
+        <div class="subject-hours">${totalHours} год · ${totalConcepts} понять · ${totalConcepts * 3} тестів</div>
+      </header>
+      ${themesHtml}
+    </section>`;
+  }
+
+  function renderAll() {
+    const root = document.getElementById('curriculum-root');
+    root.innerHTML = CURRICULUM.subjects.map(renderSubject).join('');
+    renderProgress();
+  }
+
+  function renderProgress() {
+    const summary = document.getElementById('progressSummary');
+    if (!currentEmail || Object.keys(scoresCache).length === 0) {
+      summary.classList.remove('show');
+      return;
+    }
+    const scores = Object.values(scoresCache).filter(s => s && s.percent != null);
+    const total = scores.length;
+    if (total === 0) {
+      summary.classList.remove('show');
+      return;
+    }
+    const avg = Math.round(scores.reduce((sum, s) => sum + s.percent, 0) / total);
+    const good = scores.filter(s => s.percent >= 80).length;
+    const totalAllTests = 177;
+
+    summary.innerHTML = `<h3>Твій прогрес</h3>
+      <div class="progress-stats">
+        <div class="stat">
+          <div class="stat-num">${total}</div>
+          <div class="stat-label">здано тестів<br>з ${totalAllTests}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">${avg}%</div>
+          <div class="stat-label">середній бал</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">${good}</div>
+          <div class="stat-label">тестів<br>80%+</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">${Math.round(total / totalAllTests * 100)}%</div>
+          <div class="stat-label">пройдено<br>курсу</div>
+        </div>
+      </div>`;
+    summary.classList.add('show');
+  }
+
+  // ============================================
+  // ЗАВАНТАЖЕННЯ ОЦІНОК
+  // ============================================
+  async function fetchScores(email) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.startsWith('__INSERT')) {
+      setStatus('⚠ URL Apps Script не налаштовано', 'warn');
+      return null;
+    }
+    try {
+      const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      return data.scores || {};
+    } catch (e) {
+      console.error(e);
+      setStatus('⚠ Помилка: ' + e.message, 'warn');
+      return null;
+    }
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg || '';
+    el.style.color = type === 'warn' ? '#d99186' : 'var(--accent)';
+  }
+
+  async function loadScoresFor(email) {
+    if (!email) return;
+    document.getElementById('loading').classList.add('show');
+    try {
+      const scores = await fetchScores(email);
+      if (scores) {
+        scoresCache = scores;
+        currentEmail = email;
+        localStorage.setItem('mathPlanEmail', email);
+        const count = Object.keys(scores).length;
+        setStatus(count > 0 ? `✓ Завантажено ${count} оцінок` : '✓ Ще немає зданих тестів');
+        renderAll();
+      }
+    } finally {
+      document.getElementById('loading').classList.remove('show');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderAll();
+    const emailInput = document.getElementById('userEmail');
+    const saved = localStorage.getItem('mathPlanEmail');
+    if (saved) {
+      emailInput.value = saved;
+      loadScoresFor(saved);
+    }
+
+    document.getElementById('loadScoresBtn').addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      if (!email) { setStatus('Введи email', 'warn'); return; }
+      if (!email.includes('@')) { setStatus('Email має містити @', 'warn'); return; }
+      loadScoresFor(email);
+    });
+
+    emailInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('loadScoresBtn').click();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      localStorage.removeItem('mathPlanEmail');
+      emailInput.value = '';
+      currentEmail = '';
+      scoresCache = {};
+      setStatus('');
+      renderAll();
+    });
+  });
+</script>
+</body>
+</html>
