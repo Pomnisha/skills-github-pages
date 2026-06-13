@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid Trading Bot — How It Works</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --green: #2ea043;
+    --green-bright: #3fb950;
+    --red: #da3633;
+    --red-bright: #f85149;
+    --blue: #388bfd;
+    --yellow: #d29922;
+    --accent: #58a6ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+  }
+
+  .layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+  }
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .card h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* CHART */
+  #chart-wrap {
+    position: relative;
+    width: 100%;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    border-radius: 6px;
+    background: var(--surface2);
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover { background: var(--border); }
+  button.primary { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { background: #79c0ff; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .param-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .param {
+    background: var(--surface2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+  .param label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .param input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    margin-top: 4px;
+  }
+  .param .val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid var(--border);
+  }
+  .stat-box .label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .stat-box .value {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .stat-box .value.pos { color: var(--green-bright); }
+  .stat-box .value.neg { color: var(--red-bright); }
+  .stat-box .value.neu { color: var(--text); }
+  .stat-box .value.acc { color: var(--accent); }
+
+  /* TRADES LOG */
+  .trades-log {
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 0.78rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .trade-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px;
+    border-radius: 4px;
+    margin-bottom: 3px;
+    background: var(--surface2);
+  }
+  .trade-entry .tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .trade-entry .tag.buy { background: rgba(46,160,67,0.2); color: var(--green-bright); }
+  .trade-entry .tag.sell { background: rgba(218,54,51,0.2); color: var(--red-bright); }
+  .trade-entry .profit { font-weight: 600; color: var(--green-bright); }
+
+  /* HOW IT WORKS */
+  .explainer {
+    margin-top: 20px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0d1117;
+    font-weight: 800;
+    font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+  }
+  .step h3 { font-size: 0.9rem; margin-bottom: 6px; color: var(--text); }
+  .step p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Speed control */
+  .speed-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<h1>Grid Trading Bot</h1>
+<p class="subtitle">An interactive simulation — watch the bot buy low and sell high across a price grid</p>
+
+<div class="layout">
+  <!-- LEFT: Chart + controls -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Live Simulation</h2>
+      <div class="controls">
+        <button class="primary" id="btnStart">▶ Start</button>
+        <button id="btnPause" disabled>⏸ Pause</button>
+        <button id="btnReset">↺ Reset</button>
+        <span style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+          <span class="speed-label">Speed</span>
+          <input type="range" id="speedSlider" min="1" max="10" value="4" style="width:80px; accent-color:var(--accent);">
+        </span>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:#3fb950"></div> Buy order</div>
+        <div class="legend-item"><div class="dot" style="background:#f85149"></div> Sell order</div>
+        <div class="legend-item"><div class="dot" style="background:#58a6ff"></div> Price</div>
+        <div class="legend-item"><div class="dot" style="background:#d29922; width:20px; border-radius:2px;"></div> Grid lines</div>
+      </div>
+      <div id="chart-wrap">
+        <canvas id="chart" height="340"></canvas>
+      </div>
+    </div>
+
+    <!-- Steps explanation -->
+    <div class="explainer">
+      <div class="card" style="margin-bottom:0">
+        <h2>How Grid Trading Works</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <h3>Set the Grid</h3>
+            <p>Define a price range and divide it into equal intervals. Each interval is one "grid level."</p>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3>Place Orders</h3>
+            <p>Place <span style="color:var(--green-bright)">buy orders</span> below the current price and <span style="color:var(--red-bright)">sell orders</span> above it at every grid line.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3>Price Drops → Buy</h3>
+            <p>When price falls to a grid line, the bot buys. It immediately places a sell order one level higher.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <h3>Price Rises → Sell</h3>
+            <p>When price rises to the sell level, the bot sells for a profit equal to one grid interval.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <h3>Repeat</h3>
+            <p>The bot profits every time price oscillates within the grid — more volatility means more profit.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Config + Stats -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Grid Configuration</h2>
+      <div class="param" style="margin-bottom:8px;">
+        <label>Number of grids</label>
+        <div class="val" id="gridCountVal">8</div>
+        <input type="range" id="gridCount" min="3" max="16" value="8">
+      </div>
+      <div class="param-row">
+        <div class="param">
+          <label>Lower bound</label>
+          <div class="val" id="lowerVal">$90</div>
+          <input type="range" id="lowerBound" min="50" max="95" value="90">
+        </div>
+        <div class="param-row" style="display:block;">
+          <div class="param">
+            <label>Upper bound</label>
+            <div class="val" id="upperVal">$110</div>
+            <input type="range" id="upperBound" min="105" max="150" value="110">
+          </div>
+        </div>
+      </div>
+      <div class="param" style="margin-top:8px;">
+        <label>Order size (units)</label>
+        <div class="val" id="sizeVal">1.0</div>
+        <input type="range" id="orderSize" min="1" max="10" value="10" step="1">
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="label">Current Price</div>
+          <div class="value neu" id="statPrice">$100.00</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Grid Spacing</div>
+          <div class="value acc" id="statSpacing">$2.50</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Total P&amp;L</div>
+          <div class="value pos" id="statPnl">$0.00</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Closed Trades</div>
+          <div class="value neu" id="statTrades">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Open Buys</div>
+          <div class="value pos" id="statBuys">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Open Sells</div>
+          <div class="value neg" id="statSells">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Trade Log</h2>
+      <div class="trades-log" id="tradeLog">
+        <div style="color:var(--text-muted); font-size:0.8rem; padding:8px 0;">Press Start to run the simulation…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('chart');
+const ctx = canvas.getContext('2d');
+
+let running = false;
+let animId = null;
+let tick = 0;
+let price = 100;
+let pnl = 0;
+let closedTrades = 0;
+let priceHistory = [];
+let trades = [];
+
+// Grid state: for each grid level, track whether an open buy is holding position
+// openPositions[i] = buy price if we have an open position at level i, else null
+let openPositions = {};
+let openBuyOrders = {};   // level index → price (orders waiting to buy)
+let openSellOrders = {};  // level index → {sellPrice, buyPrice} (orders waiting to sell)
+
+let gridLevels = [];
+let gridSpacing = 0;
+
+// Price simulation params
+let priceAngle = 0;
+let priceDrift = 0;
+
+function getParams() {
+  return {
+    numGrids: parseInt(document.getElementById('gridCount').value),
+    lower: parseInt(document.getElementById('lowerBound').value),
+    upper: parseInt(document.getElementById('upperBound').value),
+    size: parseInt(document.getElementById('orderSize').value) / 10,
+    speed: parseInt(document.getElementById('speedSlider').value),
+  };
+}
+
+function initGrid() {
+  const { numGrids, lower, upper } = getParams();
+  gridSpacing = (upper - lower) / numGrids;
+  gridLevels = [];
+  for (let i = 0; i <= numGrids; i++) {
+    gridLevels.push(lower + i * gridSpacing);
+  }
+  price = (lower + upper) / 2;
+  priceHistory = [price];
+  pnl = 0;
+  closedTrades = 0;
+  trades = [];
+  tick = 0;
+  priceAngle = 0;
+  priceDrift = 0;
+  openPositions = {};
+  openBuyOrders = {};
+  openSellOrders = {};
+
+  // Initial order placement: buy below current price, sell above
+  gridLevels.forEach((level, i) => {
+    if (level < price) {
+      openBuyOrders[i] = level;
+    } else if (level > price) {
+      openSellOrders[i] = { sellPrice: level, buyPrice: level - gridSpacing };
+    }
+  });
+
+  updateParamDisplays();
+  updateStats();
+  render();
+}
+
+function updateParamDisplays() {
+  const { numGrids, lower, upper, size } = getParams();
+  document.getElementById('gridCountVal').textContent = numGrids;
+  document.getElementById('lowerVal').textContent = '$' + lower;
+  document.getElementById('upperVal').textContent = '$' + upper;
+  document.getElementById('sizeVal').textContent = size.toFixed(1);
+  document.getElementById('statSpacing').textContent = '$' + ((upper - lower) / numGrids).toFixed(2);
+}
+
+// ─── SIMULATION ──────────────────────────────────────────────────────────────
+function step() {
+  const { lower, upper, size } = getParams();
+
+  // Simulate price: random walk with sinusoidal component to ensure oscillation
+  const range = upper - lower;
+  priceAngle += (0.02 + Math.random() * 0.02);
+  const sinComponent = Math.sin(priceAngle) * range * 0.28;
+  const noise = (Math.random() - 0.5) * gridSpacing * 0.8;
+  const mean = (lower + upper) / 2;
+  const reversion = (mean - price) * 0.03;
+  price = price + reversion + noise + sinComponent * 0.04;
+
+  // Clamp price within extended bounds
+  price = Math.max(lower * 0.97, Math.min(upper * 1.03, price));
+
+  // Check orders
+  gridLevels.forEach((level, i) => {
+    // Check buy orders
+    if (openBuyOrders[i] !== undefined && price <= level) {
+      // BUY triggered
+      delete openBuyOrders[i];
+      openPositions[i] = level; // bought at this level
+      const sellLevel = level + gridSpacing;
+      if (openSellOrders[i] === undefined) {
+        openSellOrders[i] = { sellPrice: sellLevel, buyPrice: level };
+      }
+      logTrade('buy', level, size);
+    }
+
+    // Check sell orders
+    if (openSellOrders[i] !== undefined && price >= openSellOrders[i].sellPrice) {
+      const { sellPrice, buyPrice } = openSellOrders[i];
+      // SELL triggered
+      delete openSellOrders[i];
+      delete openPositions[i];
+      const profit = (sellPrice - buyPrice) * size;
+      pnl += profit;
+      closedTrades++;
+      logTrade('sell', sellPrice, size, profit);
+      // Re-place buy order at the buy level
+      if (openBuyOrders[i] === undefined && buyPrice >= lower) {
+        openBuyOrders[i] = buyPrice;
+      }
+    }
+  });
+
+  priceHistory.push(price);
+  if (priceHistory.length > 300) priceHistory.shift();
+  tick++;
+}
+
+function logTrade(type, price, size, profit) {
+  trades.unshift({ type, price, size, profit });
+  if (trades.length > 100) trades.pop();
+  renderTradeLog();
+}
+
+function renderTradeLog() {
+  const log = document.getElementById('tradeLog');
+  if (trades.length === 0) return;
+  log.innerHTML = trades.slice(0, 40).map(t => {
+    const profitStr = t.profit != null ? `<span class="profit">+$${t.profit.toFixed(2)}</span>` : '';
+    return `<div class="trade-entry">
+      <span class="tag ${t.type}">${t.type}</span>
+      <span>$${t.price.toFixed(2)} × ${t.size.toFixed(1)}</span>
+      ${profitStr}
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const { lower, upper } = getParams();
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth;
+  const H = 340;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  ctx.clearRect(0, 0, W, H);
+
+  const padL = 52, padR = 24, padT = 16, padB = 32;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const priceMin = lower - gridSpacing * 0.5;
+  const priceMax = upper + gridSpacing * 0.5;
+  const priceRange = priceMax - priceMin;
+
+  function px(p) { return padT + chartH * (1 - (p - priceMin) / priceRange); }
+  function tx(i) { return padL + (i / (priceHistory.length - 1 || 1)) * chartW; }
+
+  // Background
+  ctx.fillStyle = '#161b22';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  gridLevels.forEach((level, i) => {
+    const y = px(level);
+    const hasBuy = openBuyOrders[i] !== undefined;
+    const hasSell = openSellOrders[i] !== undefined;
+
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    if (hasBuy) {
+      ctx.strokeStyle = 'rgba(63,185,80,0.4)';
+    } else if (hasSell) {
+      ctx.strokeStyle = 'rgba(248,81,73,0.4)';
+    } else {
+      ctx.strokeStyle = 'rgba(210,153,34,0.25)';
+    }
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(padL + chartW, y);
+    ctx.stroke();
+    ctx.restore();
+
+    // Price label
+    ctx.fillStyle = hasBuy ? '#3fb950' : hasSell ? '#f85149' : '#8b949e';
+    ctx.font = `${dpr > 1 ? 10 : 11}px monospace`;
+    ctx.textAlign = 'right';
+    ctx.fillText('$' + level.toFixed(1), padL - 4, y + 4);
+
+    // Order dot
+    if (hasBuy) {
+      ctx.beginPath();
+      ctx.arc(padL + chartW + 8, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#3fb950';
+      ctx.fill();
+    } else if (hasSell) {
+      ctx.beginPath();
+      ctx.arc(padL + chartW + 8, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#f85149';
+      ctx.fill();
+    }
+  });
+
+  // Price line gradient
+  if (priceHistory.length > 1) {
+    const grad = ctx.createLinearGradient(padL, 0, padL + chartW, 0);
+    grad.addColorStop(0, 'rgba(88,166,255,0.1)');
+    grad.addColorStop(1, 'rgba(88,166,255,0.9)');
+
+    ctx.beginPath();
+    priceHistory.forEach((p, i) => {
+      const x = padL + (i / (priceHistory.length - 1)) * chartW;
+      const y = px(p);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+
+    // Fill under
+    ctx.save();
+    ctx.lineTo(padL + chartW, padT + chartH);
+    ctx.lineTo(padL, padT + chartH);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(88,166,255,0.06)';
+    ctx.fill();
+    ctx.restore();
+
+    ctx.beginPath();
+    priceHistory.forEach((p, i) => {
+      const x = padL + (i / (priceHistory.length - 1)) * chartW;
+      const y = px(p);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  }
+
+  // Current price marker
+  const curY = px(price);
+  ctx.save();
+  ctx.setLineDash([3, 3]);
+  ctx.strokeStyle = 'rgba(88,166,255,0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, curY);
+  ctx.lineTo(padL + chartW, curY);
+  ctx.stroke();
+  ctx.restore();
+
+  // Price badge
+  const badgeText = '$' + price.toFixed(2);
+  ctx.font = 'bold 11px monospace';
+  const tw = ctx.measureText(badgeText).width;
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillRect(padL - tw - 14, curY - 9, tw + 10, 18);
+  ctx.fillStyle = '#0d1117';
+  ctx.textAlign = 'right';
+  ctx.fillText(badgeText, padL - 6, curY + 4);
+
+  // Axes
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + chartH);
+  ctx.lineTo(padL + chartW, padT + chartH);
+  ctx.stroke();
+
+  updateStats();
+}
+
+function updateStats() {
+  const buys = Object.keys(openBuyOrders).length;
+  const sells = Object.keys(openSellOrders).length;
+  document.getElementById('statPrice').textContent = '$' + price.toFixed(2);
+  document.getElementById('statPnl').textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+  document.getElementById('statPnl').className = 'value ' + (pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu');
+  document.getElementById('statTrades').textContent = closedTrades;
+  document.getElementById('statBuys').textContent = buys;
+  document.getElementById('statSells').textContent = sells;
+}
+
+// ─── ANIMATION LOOP ──────────────────────────────────────────────────────────
+let lastTime = 0;
+function loop(ts) {
+  if (!running) return;
+  const { speed } = getParams();
+  const interval = 250 / speed;
+  if (ts - lastTime >= interval) {
+    for (let i = 0; i < speed; i++) step();
+    render();
+    lastTime = ts;
+  }
+  animId = requestAnimationFrame(loop);
+}
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+document.getElementById('btnStart').addEventListener('click', () => {
+  running = true;
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnPause').disabled = false;
+  animId = requestAnimationFrame(loop);
+});
+
+document.getElementById('btnPause').addEventListener('click', () => {
+  running = false;
+  cancelAnimationFrame(animId);
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  running = false;
+  cancelAnimationFrame(animId);
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('tradeLog').innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px 0;">Press Start to run the simulation…</div>';
+  initGrid();
+});
+
+['gridCount','lowerBound','upperBound','orderSize'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    updateParamDisplays();
+    if (!running) { initGrid(); }
+  });
+});
+
+window.addEventListener('resize', () => render());
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+initGrid();
+</script>
+</body>
+</html>
